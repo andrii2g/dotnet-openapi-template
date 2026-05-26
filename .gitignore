@@ -1,5 +1,9 @@
-PLAN.md
 /.dotnet-home
 /src/ProductCatalog.Api/obj
 /.vs/ProductCatalog
 /tests/ProductCatalog.Api.Tests/obj
+/.nuget-packages
+/.vs
+/src/ProductCatalog.Api/bin
+/tests/ProductCatalog.Api.Tests/bin
+/.vs/ProjectEvaluation
