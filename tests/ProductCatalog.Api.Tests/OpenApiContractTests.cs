@@ -32,6 +32,9 @@ public sealed class OpenApiContractTests
         Assert.NotNull(document["paths"]?["/health"]);
         Assert.NotNull(document["paths"]?["/api/v1/products"]);
         Assert.NotNull(document["paths"]?["/api/v1/products/{id}"]);
+        var serverUrl = document["servers"]?[0]?["url"]?.ToString();
+        Assert.False(string.IsNullOrWhiteSpace(serverUrl));
+        Assert.True(serverUrl == "/" || serverUrl!.EndsWith("/", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -48,5 +51,37 @@ public sealed class OpenApiContractTests
         Assert.Equal("Products_GetById", document["paths"]?["/api/v1/products/{id}"]?["get"]?["operationId"]?.ToString());
         Assert.Equal("Products_Update", document["paths"]?["/api/v1/products/{id}"]?["put"]?["operationId"]?.ToString());
         Assert.Equal("Products_Delete", document["paths"]?["/api/v1/products/{id}"]?["delete"]?["operationId"]?.ToString());
+    }
+
+    [Fact]
+    public async Task OpenApiDocument_OperationsHaveTagsDescriptionsAndSuccessResponses()
+    {
+        await using var factory = new ApiFactory();
+        using var client = factory.CreateApiClient();
+
+        var json = await client.GetStringAsync("/openapi/v1.json");
+        var document = JsonNode.Parse(json)!;
+
+        AssertOperationHasContractMetadata(document, "/health", "get");
+        AssertOperationHasContractMetadata(document, "/api/v1/products", "get");
+        AssertOperationHasContractMetadata(document, "/api/v1/products", "post");
+        AssertOperationHasContractMetadata(document, "/api/v1/products/{id}", "get");
+        AssertOperationHasContractMetadata(document, "/api/v1/products/{id}", "put");
+        AssertOperationHasContractMetadata(document, "/api/v1/products/{id}", "delete");
+    }
+
+    private static void AssertOperationHasContractMetadata(JsonNode document, string path, string method)
+    {
+        var operation = document["paths"]?[path]?[method];
+
+        Assert.NotNull(operation);
+        Assert.False(string.IsNullOrWhiteSpace(operation?["operationId"]?.ToString()));
+        Assert.False(string.IsNullOrWhiteSpace(operation?["summary"]?.ToString()));
+        Assert.False(string.IsNullOrWhiteSpace(operation?["description"]?.ToString()));
+        Assert.NotNull(operation?["tags"]?[0]);
+
+        var responses = operation?["responses"]?.AsObject();
+        Assert.NotNull(responses);
+        Assert.Contains(responses!, response => response.Key.StartsWith("2", StringComparison.Ordinal));
     }
 }
