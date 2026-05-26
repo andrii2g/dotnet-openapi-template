@@ -25,7 +25,7 @@ public sealed class OpenApiContractTests
         var json = await client.GetStringAsync("/openapi/v1.json");
         var document = JsonNode.Parse(json)!;
 
-        Assert.Equal("3.1.0", document["openapi"]?.ToString());
+        Assert.StartsWith("3.1.", document["openapi"]?.ToString());
         Assert.Equal("Product Catalog API", document["info"]?["title"]?.ToString());
         Assert.Equal("v1", document["info"]?["version"]?.ToString());
 

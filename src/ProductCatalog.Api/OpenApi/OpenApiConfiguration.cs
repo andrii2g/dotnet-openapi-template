@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
-using Microsoft.OpenApi.Models;
 using ProductCatalog.Api.Common;
 
 namespace ProductCatalog.Api.OpenApi;
@@ -37,6 +36,8 @@ public static class OpenApiConfiguration
 
             options.AddOperationTransformer((operation, _, _) =>
             {
+                operation.Responses ??= [];
+
                 operation.Responses.TryAdd(StatusCodes.Status500InternalServerError.ToString(), new OpenApiResponse
                 {
                     Description = "Unexpected server error."
